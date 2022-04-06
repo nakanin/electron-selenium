@@ -6,11 +6,27 @@ import { format as formatUrl } from 'url'
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
-// global reference to mainWindow (necessary to prevent window from being garbage collected)
 let mainWindow
 
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit()
+  }
+})
+
+app.on('activate', () => {
+  if (mainWindow === null) {
+    mainWindow = createMainWindow()
+  }
+})
+
+app.on('ready', () => {
+  mainWindow = createMainWindow()
+  scrapeTeamsStatusBySelenium()
+})
+
 function createMainWindow() {
-  const window = new BrowserWindow({webPreferences: {nodeIntegration: true}})
+  const window = new BrowserWindow()
 
   if (isDevelopment) {
     window.webContents.openDevTools()
@@ -31,32 +47,21 @@ function createMainWindow() {
     mainWindow = null
   })
 
-  window.webContents.on('devtools-opened', () => {
-    window.focus()
-    setImmediate(() => {
-      window.focus()
-    })
-  })
-
   return window
 }
 
-// quit application when all windows are closed
-app.on('window-all-closed', () => {
-  // on macOS it is common for applications to stay open until the user explicitly quits
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
+/* eslint-disable */
 
-app.on('activate', () => {
-  // on macOS it is common to re-create a window even after all windows have been closed
-  if (mainWindow === null) {
-    mainWindow = createMainWindow()
+async function scrapeTeamsStatusBySelenium() {
+  const { Builder, By, until } = require('selenium-webdriver')
+  const driver = await new Builder().forBrowser('firefox').build()
+  try {
+    await driver.get('https://teams.microsoft.com/_?lm=deeplink&lmsrc=NeutralHomePageWeb&cmpid=WebSignIn&culture=ja-jp&country=jp#/conversations/?ctx=chat')
+    await driver.wait(until.titleIs('チャット | Microsoft Teams'), 120000)
+    const span = await driver.findElement(By.css('.cle-item span.ts-skype-status'))
+    const status = await span.getAttribute('title')
+    console.log(status)
+  } finally {
+    await driver.quit();
   }
-})
-
-// create main BrowserWindow when electron is ready
-app.on('ready', () => {
-  mainWindow = createMainWindow()
-})
+}

@@ -9,12 +9,17 @@
     "dist:dir": "yarn dist --dir -c.compression=store -c.mac.identity=null"
   },
   "dependencies": {
+    "selenium-webdriver": "^4.1.1",
     "source-map-support": "^0.5.16"
   },
   "devDependencies": {
     "electron": "8.2.0",
     "electron-builder": "^22.4.1",
     "electron-webpack": "^2.8.2",
+    "electron-webpack-eslint": "^6.0.0",
+    "electron-webpack-vue": "^2.4.0",
+    "eslint-plugin-vue": "^8.3.0",
+    "vue": "^2.6.14",
     "webpack": "~4.42.1"
   }
 }
